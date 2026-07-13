@@ -16,4 +16,4 @@ class AnalyzeResponse(BaseModel):
     status: Literal["not_evaluated", "normal", "anomalous"]
     anomaly_score: float | None = Field(default=None, ge=0.0, le=1.0)
     model_version: str
-    notes: list[str] = []
+    notes: list[str] = Field(default_factory=list)
