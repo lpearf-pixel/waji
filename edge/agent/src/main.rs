@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
         .and_then(|value| value.parse().ok())
         .unwrap_or(1883);
 
-    let mut options = MqttOptions::new(&device_id, mqtt_host, mqtt_port);
+    let mut options = MqttOptions::new(device_id.clone(), mqtt_host, mqtt_port);
     options.set_keep_alive(Duration::from_secs(30));
     let (client, mut event_loop) = AsyncClient::new(options, 10);
 
