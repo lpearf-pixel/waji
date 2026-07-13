@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-waji}
+      POSTGRES_USER: ${DB_USER:-waji}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-waji}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-waji} -d ${DB_NAME:-waji}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-waji}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-change-me-now}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  platform:
+    build: ./apps/platform
+    env_file: .env
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/platform:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  audio-ai:
+    build: ./services/audio_ai
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8100 --reload
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./services/audio_ai:/app
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+  minio_data:
