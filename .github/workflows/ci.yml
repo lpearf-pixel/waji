@@ -33,4 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: edge/agent
       - run: cargo check --manifest-path edge/agent/Cargo.toml
+      - run: cargo test --manifest-path edge/agent/Cargo.toml
