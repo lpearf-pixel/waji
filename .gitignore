@@ -14,6 +14,7 @@ media/
 
 # Rust
 target/
+edge/agent/var/
 
 # Node
 node_modules/

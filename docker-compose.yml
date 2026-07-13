@@ -35,6 +35,39 @@ services:
     volumes:
       - minio_data:/data
 
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-waji}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-change-me-now}
+      MINIO_BUCKET: ${MINIO_BUCKET:-waji-audio}
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do sleep 1; done;
+      /usr/bin/mc mb --ignore-existing local/$$MINIO_BUCKET;
+      exit 0;
+      "
+
+  edge-agent:
+    build: ./edge/agent
+    environment:
+      RUST_LOG: info
+      WAJI_S3_ACCESS_KEY: ${MINIO_ACCESS_KEY:-waji}
+      WAJI_S3_SECRET_KEY: ${MINIO_SECRET_KEY:-change-me-now}
+      WAJI_S3_BUCKET: ${MINIO_BUCKET:-waji-audio}
+    command: ["--config", "/etc/waji/edge.toml"]
+    volumes:
+      - ./edge/agent/config/edge.docker.toml:/etc/waji/edge.toml:ro
+      - edge_spool:/var/lib/waji/spool
+    depends_on:
+      mosquitto:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+
   platform:
     build: ./apps/platform
     env_file: .env
@@ -62,3 +95,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  edge_spool:

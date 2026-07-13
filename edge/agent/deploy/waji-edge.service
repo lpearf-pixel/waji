@@ -1,0 +1,22 @@
+[Unit]
+Description=Waji Edge Acquisition Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=waji
+Group=waji
+Environment=RUST_LOG=info
+ExecStart=/usr/local/bin/waji-edge-agent --config /etc/waji/edge.toml
+WorkingDirectory=/var/lib/waji
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/waji
+
+[Install]
+WantedBy=multi-user.target
