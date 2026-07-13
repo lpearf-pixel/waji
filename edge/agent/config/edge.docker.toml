@@ -1,0 +1,40 @@
+[device]
+id = "EXCAVATOR-DOCKER-001"
+machine_type = "excavator"
+machine_model = "docker-simulator"
+
+[sensor]
+id = "VIB-HYD-PUMP-01"
+position = "hydraulic_pump_front"
+orientation = "x_shaft_y_horizontal_z_vertical"
+
+[mqtt]
+host = "mosquitto"
+port = 1883
+tls = false
+
+[s3]
+endpoint = "http://minio:9000"
+region = "us-east-1"
+bucket = "waji-audio"
+access_key = "waji"
+secret_key = "change-me-now"
+path_style = true
+
+[spool]
+root_dir = "/var/lib/waji/spool"
+keep_uploaded = true
+retention_days = 14
+
+[source]
+kind = "simulator"
+sample_rate_hz = 2000
+window_seconds = 10.0
+publish_interval_seconds = 15
+anomaly_every_windows = 6
+seed = 42
+
+[pipeline]
+baseline_rms_g = 0.08
+kurtosis_reference = 3.0
+alert_threshold = 0.75
