@@ -1,0 +1,14 @@
+{% extends "core/base.html" %}
+{% block title %}{{ title }} · Waji{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+{% if event %}<p><a href="{% url 'event-detail' event.public_id %}">← 返回事件 {{ event.machine.fleet_id }}</a></p>{% endif %}
+{% if safety_notice %}<div class="safety"><strong>安全提醒：</strong>{{ safety_notice }}</div>{% endif %}
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="actions"><button type="submit">保存</button>{% if event %}<a class="button secondary" href="{% url 'event-detail' event.public_id %}">取消</a>{% endif %}</div>
+  </form>
+</div>
+{% endblock %}
