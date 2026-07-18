@@ -27,3 +27,15 @@
 - 功能从 `develop` 分出，完成后通过 PR 合回 `develop`。
 - `main` 只接收 `release/*` 或紧急 `hotfix/*`。
 - 一个提交只处理一个清晰主题。
+
+## 系统工程 Skill 加载规则
+
+涉及以下任一事项时，必须先读取 `skills/engineering-machinery-health-systems/SKILL.md`，再读取 `projects/waji/PROJECT-SKILL.md`：
+
+- 现场采集协议、故障案例、老师傅诊断记录或维修后复测；
+- 手机、低成本便携终端、麦克风、接触式拾音器或振动传感器；
+- 数据模型、案例检索、频谱、规则、AI 诊断或人工复核；
+- 固定边缘、车载供电、通信、CAN、自动告警或部署扩张；
+- 以准确率、录音数量、仪表盘或单次案例判断项目成功。
+
+Waji 默认成熟度路线为“故障触发式现场采集 → 低成本便携终端 → 通过 Gate 5 后的小规模固定边缘试点”。禁止把固定边缘作为起步前提，禁止把 Hypothesis 写成 Outcome。
