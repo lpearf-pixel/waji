@@ -18,25 +18,8 @@ jobs:
           cache-dependency-path: apps/platform/requirements.txt
       - run: pip install --quiet -r apps/platform/requirements.txt
       - run: python apps/platform/manage.py check
-      - name: Run Gate 0 tests
-        shell: bash
-        run: |
-          set +e
-          python apps/platform/manage.py test core.tests -v 2 > /tmp/gate0-tests.log 2>&1
-          echo "$?" > /tmp/gate0-tests.status
-          tail -n 220 /tmp/gate0-tests.log
-          exit 0
-      - name: Upload Gate 0 test log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gate0-test-log
-          path: /tmp/gate0-tests.log
-          if-no-files-found: error
-          retention-days: 7
-      - name: Enforce Gate 0 test result
-        shell: bash
-        run: test "$(cat /tmp/gate0-tests.status)" = "0"
+      - run: python apps/platform/manage.py makemigrations --check --dry-run
+      - run: python apps/platform/manage.py test core.tests -v 2
 
   audio-ai:
     runs-on: ubuntu-latest
