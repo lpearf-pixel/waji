@@ -81,3 +81,25 @@ class CaptureIntegrityTests(TestCase):
         capture.refresh_from_db()
         self.assertEqual(capture.raw_sha256, original_hash)
         self.assertEqual(capture.raw_file.name, original_name)
+
+    def test_non_image_position_upload_is_rejected(self) -> None:
+        with self.assertRaises(ValidationError) as context:
+            Capture.objects.create(
+                event=self.event,
+                stage="pre",
+                raw_file=SimpleUploadedFile("pump.wav", make_wav_bytes(), content_type="audio/wav"),
+                original_filename="pump.wav",
+                content_type="audio/wav",
+                position_photo=SimpleUploadedFile(
+                    "position.html",
+                    b"<script>alert('not an image')</script>",
+                    content_type="text/html",
+                ),
+                device_label="现场手机",
+                component="主泵区域",
+                position_text="主泵外壳右侧20厘米",
+                action="怠速抬大臂",
+                quality_status="valid",
+                operator=self.user,
+            )
+        self.assertIn("position_photo", context.exception.message_dict)
