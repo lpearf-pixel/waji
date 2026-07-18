@@ -9,7 +9,9 @@ from django.db import models
 from django.utils import timezone
 
 ALLOWED_AUDIO_EXTENSIONS = {".wav", ".m4a", ".mp3", ".aac", ".ogg", ".3gp"}
+ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
 MAX_AUDIO_BYTES = 100 * 1024 * 1024
+MAX_PHOTO_BYTES = 20 * 1024 * 1024
 
 
 def _safe_suffix(filename: str, *, default: str = "") -> str:
@@ -182,6 +184,13 @@ class Capture(models.Model):
             size = getattr(self.raw_file, "size", None)
             if size is not None and size > MAX_AUDIO_BYTES:
                 raise ValidationError({"raw_file": "单个音频文件不能超过 100 MB"})
+        if self.position_photo:
+            photo_extension = Path(self.position_photo.name).suffix.lower()
+            if photo_extension not in ALLOWED_PHOTO_EXTENSIONS:
+                raise ValidationError({"position_photo": "位置照片仅支持 JPG、PNG、WEBP、HEIC 或 HEIF"})
+            photo_size = getattr(self.position_photo, "size", None)
+            if photo_size is not None and photo_size > MAX_PHOTO_BYTES:
+                raise ValidationError({"position_photo": "单张位置照片不能超过 20 MB"})
         if self.stage == self.Stage.POST and self.related_pre_capture:
             if self.related_pre_capture.event_id != self.event_id:
                 raise ValidationError({"related_pre_capture": "维修前后录音必须属于同一故障事件"})
