@@ -23,9 +23,20 @@ jobs:
         run: |
           set +e
           python apps/platform/manage.py test core.tests -v 2 > /tmp/gate0-tests.log 2>&1
-          status=$?
+          echo "$?" > /tmp/gate0-tests.status
           tail -n 220 /tmp/gate0-tests.log
-          exit $status
+          exit 0
+      - name: Upload Gate 0 test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate0-test-log
+          path: /tmp/gate0-tests.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce Gate 0 test result
+        shell: bash
+        run: test "$(cat /tmp/gate0-tests.status)" = "0"
 
   audio-ai:
     runs-on: ubuntu-latest
