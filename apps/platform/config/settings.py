@@ -61,11 +61,18 @@ TIME_ZONE = "Asia/Shanghai"
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "field-dashboard"
+LOGOUT_REDIRECT_URL = "login"
+DATA_UPLOAD_MAX_MEMORY_SIZE = 110 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
 SPECTACULAR_SETTINGS = {
     "TITLE": "Waji Platform API",
-    "DESCRIPTION": "工程机械 AI 听诊与异常预警平台 API",
-    "VERSION": "0.1.0",
+    "DESCRIPTION": "工程机械现场采集、人工诊断与维修闭环平台 API",
+    "VERSION": "0.2.0",
 }
