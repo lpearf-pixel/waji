@@ -1,0 +1,13 @@
+{% extends "core/base.html" %}
+{% block title %}新建故障事件 · Waji{% endblock %}
+{% block content %}
+<h1>新建故障事件</h1>
+<div class="safety">这里记录的是<strong>触发事件和现场症状</strong>，不能直接写成已确认故障。</div>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="actions"><button type="submit">创建事件</button><a class="button secondary" href="{% url 'field-dashboard' %}">取消</a></div>
+  </form>
+</div>
+{% endblock %}

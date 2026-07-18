@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+{% block title %}现场采集台账 · Waji{% endblock %}
+{% block content %}
+<h1>现场采集台账</h1>
+<div class="safety"><strong>安全边界：</strong>采集人员不得代替合格操作手。禁止进入回转、行走、属具、风扇、皮带、高温、高压和落物危险区域。</div>
+<div class="actions">
+  <a class="button" href="{% url 'event-create' %}">新建故障事件</a>
+  <a class="button secondary" href="{% url 'machine-create' %}">登记设备</a>
+</div>
+
+<h2>最近事件</h2>
+<div class="card">
+  {% if events %}
+  <table>
+    <thead><tr><th>时间</th><th>设备 / 触发</th><th>状态</th><th></th></tr></thead>
+    <tbody>
+    {% for event in events %}
+      <tr>
+        <td>{{ event.opened_at|date:"m-d H:i" }}</td>
+        <td><strong>{{ event.machine.fleet_id }}</strong><br>{{ event.get_trigger_display }} · {{ event.symptom|truncatechars:42 }}</td>
+        <td>{{ event.get_workflow_status_display }}</td>
+        <td><a href="{% url 'event-detail' event.public_id %}">打开</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">尚无故障事件。</p>{% endif %}
+</div>
+
+<h2>设备</h2>
+<div class="grid">
+{% for machine in machines %}
+  <div class="card"><strong>{{ machine.fleet_id }}</strong><br>{{ machine.make }} {{ machine.model }}<br><span class="muted">{{ machine.hours }} 小时</span></div>
+{% empty %}
+  <div class="card muted">尚未登记设备。</div>
+{% endfor %}
+</div>
+{% endblock %}

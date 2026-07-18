@@ -1,0 +1,95 @@
+{% extends "core/base.html" %}
+{% block title %}{{ event.machine.fleet_id }} · 故障事件{% endblock %}
+{% block content %}
+<p><a href="{% url 'field-dashboard' %}">← 返回台账</a></p>
+<h1>{{ event.machine.fleet_id }} · {{ event.get_trigger_display }}</h1>
+<div class="card">
+  <span class="status {{ completeness.status }}">{{ completeness_label }}</span>
+  <p><strong>症状：</strong>{{ event.symptom }}</p>
+  <p><strong>地点：</strong>{{ event.location }}　<strong>工单：</strong>{{ event.work_order_id|default:"未填写" }}</p>
+  <p class="muted">事件编号 {{ event.public_id }} · {{ event.opened_at|date:"Y-m-d H:i" }} · 记录人 {{ event.reporter.username }}</p>
+  {% if completeness.missing %}
+  <p><strong>仍缺少：</strong></p>
+  <ul>{% for item in completeness.missing %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+
+<div class="actions">
+  <a class="button" href="{% url 'capture-create' event.public_id %}">上传录音</a>
+  <a class="button secondary" href="{% url 'observation-create' event.public_id %}">新增 Observation</a>
+  <a class="button secondary" href="{% url 'hypothesis-create' event.public_id %}">新增 Hypothesis</a>
+  <a class="button secondary" href="{% url 'decision-create' event.public_id %}">新增 Decision</a>
+  <a class="button warning" href="{% url 'outcome-edit' event.public_id %}">记录 Outcome</a>
+  <a class="button secondary" href="{% url 'event-unresolved' event.public_id %}">记录未解决状态</a>
+</div>
+
+<h2>录音与现场证据</h2>
+{% for capture in captures %}
+<div class="card">
+  <h3>{{ capture.get_stage_display }} · {{ capture.component }} · 第 {{ capture.repeat_index }} 次</h3>
+  <p><strong>位置：</strong>{{ capture.position_text }}{% if capture.distance_m %}，{{ capture.distance_m }} 米{% endif %}　<strong>动作：</strong>{{ capture.action }}</p>
+  <p><strong>质量：</strong>{{ capture.get_quality_status_display }}　<strong>处理：</strong>{{ capture.processing_status }}</p>
+  {% if capture.manual_noise_reasons %}<p><strong>现场杂音：</strong>{{ capture.manual_noise_reasons|join:", " }}</p>{% endif %}
+  {% if capture.position_photo %}<p><a href="{{ capture.position_photo.url }}" target="_blank" rel="noopener">查看录音位置照片</a></p>{% endif %}
+  <h3>原始录音</h3>
+  <audio controls preload="metadata" src="{{ capture.raw_file.url }}"></audio>
+  <p class="muted">SHA-256：<code>{{ capture.raw_sha256 }}</code></p>
+  {% if capture.processed_file %}
+    <h3>轻度去噪试听副本</h3>
+    <audio controls preload="metadata" src="{{ capture.processed_file.url }}"></audio>
+    <p class="muted">算法：{{ capture.processing_manifest.algorithm }} {{ capture.processing_manifest.version }}；仅供辅助试听，不替代原始证据。</p>
+  {% else %}
+    <p class="muted">未生成派生试听副本。原始录音仍已完整保存。</p>
+  {% endif %}
+</div>
+{% empty %}
+<div class="card muted">尚无录音。建议先录环境声，再按同一位置和动作重复录制三次。</div>
+{% endfor %}
+
+<h2>Observation</h2>
+<div class="timeline">
+{% for observation in observations %}
+  <div class="card"><strong>{{ observation.statement }}</strong><br><span class="muted">{{ observation.provenance }} · {{ observation.author.username }} · {{ observation.observed_at|date:"m-d H:i" }}</span></div>
+{% empty %}<p class="muted">尚无客观观察。</p>{% endfor %}
+</div>
+
+<h2>Hypothesis（待验证诊断方向）</h2>
+<div class="timeline">
+{% for hypothesis in hypotheses %}
+  <div class="card">
+    <strong>{{ hypothesis.suspected_component }} · {{ hypothesis.suspected_failure_mode }}</strong>
+    <p>支持：{{ hypothesis.supporting_evidence }}</p>
+    {% if hypothesis.contradicting_evidence %}<p>反对：{{ hypothesis.contradicting_evidence }}</p>{% endif %}
+    {% if hypothesis.alternatives %}<p>替代解释：{{ hypothesis.alternatives }}</p>{% endif %}
+    <p><strong>下一步验证：</strong>{{ hypothesis.safest_next_verification }}</p>
+    <span class="muted">置信 {{ hypothesis.get_confidence_display }} · {{ hypothesis.proposer.username }} · 状态 {{ hypothesis.get_status_display }}</span>
+  </div>
+{% empty %}<p class="muted">老师傅听音、频谱或案例相似度必须先记录为 Hypothesis。</p>{% endfor %}
+</div>
+
+<h2>Decision（人工授权）</h2>
+<div class="timeline">
+{% for decision in decisions %}
+  <div class="card"><strong>{{ decision.decision }}</strong><p>{{ decision.risk }}</p><span class="muted">{{ decision.get_urgency_display }} · {{ decision.decider.username }} · {{ decision.get_status_display }}</span></div>
+{% empty %}<p class="muted">尚无人工授权决定。</p>{% endfor %}
+</div>
+
+<h2>Outcome</h2>
+{% if outcome %}
+<div class="card">
+  <strong>{{ outcome.get_disposition_display }} · {{ outcome.confirmed_component|default:outcome.excluded_component }}</strong>
+  <p>{{ outcome.inspection_evidence }}</p>
+  {% if outcome.before_after_comparison %}<p><strong>前后对比：</strong>{{ outcome.before_after_comparison }}</p>{% endif %}
+  <p class="muted">{{ outcome.established_by.username }} · {{ outcome.established_at|date:"Y-m-d H:i" }} · {{ outcome.get_closure_status_display }}</p>
+</div>
+{% elif event.unresolved_reason %}
+<div class="card">
+  <strong>明确未解决</strong>
+  <p>{{ event.unresolved_reason }}</p>
+  <p>下次条件：{{ event.unresolved_next_condition }}</p>
+  <p class="muted">负责人 {{ event.unresolved_owner.username }} · 截止 {{ event.unresolved_due_date }}</p>
+</div>
+{% else %}
+<div class="card muted">尚无检查、维修、排除或延期复核结果。口头判断不能作为 Outcome。</div>
+{% endif %}
+{% endblock %}

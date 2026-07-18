@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+{% block title %}登记设备 · Waji{% endblock %}
+{% block content %}
+<h1>登记设备</h1>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="actions"><button type="submit">保存设备</button><a class="button secondary" href="{% url 'field-dashboard' %}">取消</a></div>
+  </form>
+</div>
+{% endblock %}

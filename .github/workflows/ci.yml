@@ -16,8 +16,10 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: apps/platform/requirements.txt
-      - run: pip install -r apps/platform/requirements.txt
+      - run: pip install --quiet -r apps/platform/requirements.txt
       - run: python apps/platform/manage.py check
+      - run: python apps/platform/manage.py makemigrations --check --dry-run
+      - run: python apps/platform/manage.py test core.tests -v 2
 
   audio-ai:
     runs-on: ubuntu-latest
